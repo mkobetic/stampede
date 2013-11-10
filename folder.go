@@ -35,7 +35,7 @@ func OpenRoot(path string) []*MailDirectory {
 	directories := make([]*MailDirectory, 0, 10)
 	for _, info := range infos {
 		if info.IsDir() {
-			directories = append(directories, OpenDirectory(filepath.Join(MAILDIR, info.Name()), info))
+			directories = append(directories, OpenDirectory(filepath.Join(path, info.Name()), info))
 		}
 	}
 	return directories
