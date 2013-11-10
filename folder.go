@@ -67,7 +67,7 @@ func OpenFolder(path string, info os.FileInfo) *MailFolder {
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	messages := make([]*MailMessage, 20)
+	messages := make([]*MailMessage, 0, 20)
 	var message *MailMessage
 	for {
 		line, err := reader.ReadSlice('\n')
