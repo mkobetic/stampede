@@ -1,0 +1,7 @@
+<ul class="message-list">
+  {{range $mindex, $message := .Messages}}
+    <li class="message"><a href="message?directory={{$dindex}}&folder={{$findex}}">{{.Name}}</a></li>
+  {{end}}
+  </ul></li>
+{{end}}
+</ul>

@@ -5,62 +5,17 @@ import (
 	"bytes"
 	"log"
 	"os"
-	"path/filepath"
+	"time"
 )
 
-var FROM_PREFIX = []byte("From ")
-
-type MailMessage struct{}
-
 type MailFolder struct {
-	Path     string
-	Messages []*MailMessage
+	Directory *MailDirectory
+	Path      string
+	Name      string
+	Messages  []*MailMessage
 }
 
-type MailDirectory struct {
-	Path    string
-	Folders []*MailFolder
-}
-
-func OpenRoot(path string) []*MailDirectory {
-	root, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer root.Close()
-	infos, err := root.Readdir(0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	directories := make([]*MailDirectory, 0, 10)
-	for _, info := range infos {
-		if info.IsDir() {
-			directories = append(directories, OpenDirectory(filepath.Join(path, info.Name()), info))
-		}
-	}
-	return directories
-}
-
-func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
-	dir, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer dir.Close()
-	infos, err := dir.Readdir(0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	folders := make([]*MailFolder, 0, 20)
-	for _, info := range infos {
-		if !(len(filepath.Ext(info.Name())) > 0) {
-			folders = append(folders, OpenFolder(filepath.Join(path, info.Name()), info))
-		}
-	}
-	return &MailDirectory{path, folders}
-}
-
-func OpenFolder(path string, info os.FileInfo) *MailFolder {
+func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFolder {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -68,19 +23,54 @@ func OpenFolder(path string, info os.FileInfo) *MailFolder {
 	defer file.Close()
 	reader := bufio.NewReader(file)
 	messages := make([]*MailMessage, 0, 20)
-	var message *MailMessage
+	position := 0
+	headerFinished := false
+	folder := &MailFolder{directory, path, info.Name(), nil}
+	message := &MailMessage{Folder: folder}
 	for {
 		line, err := reader.ReadSlice('\n')
 		if len(line) == 0 {
 			break
 		}
-		if bytes.HasPrefix(line, FROM_PREFIX) {
-			message = &MailMessage{}
+		if startsNewMessage(line) {
+			message.length = position - message.start
+			message = &MailMessage{Folder: folder, start: position}
+			headerFinished = false
 			messages = append(messages, message)
+		} else if !headerFinished {
+			headerFinished = message.scanHeaderLine(line)
 		}
+		position += len(line)
 		for err == bufio.ErrBufferFull { // read the rest of the line
 			line, err = reader.ReadSlice('\n')
+			position += len(line)
 		}
 	}
-	return &MailFolder{path, messages}
+	if int64(position) != info.Size() {
+		log.Fatal("Folder length mismatch!")
+	}
+	log.Println("\t", info.Name(), len(messages))
+	return folder
+}
+
+var (
+	FROM_PREFIX    = []byte("From ")
+	FROM_TIMESTAMP = "Mon Jan 2 15:04:05 2006"
+)
+
+func startsNewMessage(line []byte) bool {
+	if !bytes.HasPrefix(line, FROM_PREFIX) {
+		return false
+	}
+	line = line[len(FROM_PREFIX):]
+	tsStart := bytes.IndexByte(line, ' ')
+	if tsStart == -1 {
+		return false
+	}
+	line = bytes.Trim(line[tsStart:len(line)-1], " \t\n")
+	if len(line) > len(FROM_TIMESTAMP)+2 {
+		return false
+	}
+	_, err := time.Parse(FROM_TIMESTAMP, string(line))
+	return err == nil
 }

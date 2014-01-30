@@ -1,0 +1,10 @@
+<html>
+<body>
+<div id="folders" style="float: left; width: 250px">
+{{template "folders" .}}
+</div>
+<div id="messages" style="right:250px; float: right">
+</div>
+</div>
+</body>
+</html>
