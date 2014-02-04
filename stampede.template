@@ -1,0 +1,18 @@
+<html>
+<body>
+<div id="folders" style="float: left; width: 250px">
+<ul class="directory">
+{{range $dindex, $directory := .}}
+  <li>{{.Name}}
+  <ul class="folder">
+  {{range $findex, $folder := .Folders}}
+    <li><a href="folder?directory={{$directory.Name}}&folder={{$folder.Name}}">{{.Name}}</a></li>
+  {{end}}
+  </ul></li>
+{{end}}
+</ul>
+</div>
+<div id="main" style="left:250px; float: right">
+</div>
+</body>
+</html>
