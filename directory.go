@@ -9,10 +9,10 @@ import (
 type MailDirectory struct {
 	Path    string
 	Name    string
-	Folders []*MailFolder
+	Folders map[string]*MailFolder
 }
 
-func OpenRoot(path string) []*MailDirectory {
+func OpenRoot(path string) map[string]*MailDirectory {
 	root, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -22,10 +22,11 @@ func OpenRoot(path string) []*MailDirectory {
 	if err != nil {
 		log.Fatal(err)
 	}
-	directories := make([]*MailDirectory, 0, 10)
+	directories := make(map[string]*MailDirectory)
 	for _, info := range infos {
 		if info.IsDir() {
-			directories = append(directories, OpenDirectory(filepath.Join(path, info.Name()), info))
+			directory := OpenDirectory(filepath.Join(path, info.Name()), info)
+			directories[directory.Name] = directory
 		}
 	}
 	return directories
@@ -43,10 +44,11 @@ func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
 	}
 	log.Println(info.Name())
 	directory := &MailDirectory{path, info.Name(), nil}
-	folders := make([]*MailFolder, 0, 20)
+	folders := make(map[string]*MailFolder)
 	for _, info := range infos {
 		if !(len(filepath.Ext(info.Name())) > 0) {
-			folders = append(folders, OpenFolder(directory, filepath.Join(path, info.Name()), info))
+			folder := OpenFolder(directory, filepath.Join(path, info.Name()), info)
+			folders[folder.Name] = folder
 		}
 	}
 	directory.Folders = folders
