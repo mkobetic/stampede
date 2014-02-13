@@ -23,13 +23,11 @@ func main() {
 	for _, t := range Templates.Templates() {
 		log.Println(t.Name())
 	}
-	/*
-		/{directory}/{folder}/{index}[:{id}] => mime/message
-		/{directory}[/{folder}]?
-	*/
-	r := mux.NewRouter()
-	r.HandleFunc("/{directory}", directoryList).Methods("GET")
 	//	http.HandleFunc("/", render("stampede.template"))
+	r := mux.NewRouter()
+	r.HandleFunc("/", rootList).Methods("GET")
+	r.HandleFunc("/{directory}", directoryList).Methods("GET")
+	r.HandleFunc("/{directory}/{folder}", folderList).Methods("GET")
 	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -38,12 +36,39 @@ func directoryList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	directory, ok := Root[vars["directory"]]
 	if !ok {
-		http.Error(w, vars["directory"], 404)
+		http.NotFound(w, r)
 		return
 	}
 	list := make([]string, 0, len(directory.Folders))
 	for key := range directory.Folders {
 		list = append(list, key)
+	}
+	jsonResponse(w, list)
+}
+
+func rootList(w http.ResponseWriter, r *http.Request) {
+	list := make([]string, 0, len(Root))
+	for key := range Root {
+		list = append(list, key)
+	}
+	jsonResponse(w, list)
+}
+
+func folderList(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	directory, ok := Root[vars["directory"]]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	folder, ok := directory.Folders[vars["folder"]]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	list := make([]*MessageSummary, 0, len(folder.Messages))
+	for _, message := range folder.Messages {
+		list = append(list, &message.Summary)
 	}
 	jsonResponse(w, list)
 }
