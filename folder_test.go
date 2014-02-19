@@ -22,6 +22,7 @@ func TestStartsNewMessage(t *testing.T) {
 		"From: Mon Jan 2 15:04:05 2006\n",
 		"From Mon Jan 2 15:04:05 2006\n",
 		"From - Mon Jan 2 15:04:05 2006 -0700\n",
+		"From joe Mon Jan 2 15:04 2006 \n", // stampy accepted it
 	}
 	for _, line := range fromLines {
 		if startsNewMessage([]byte(line)) {
