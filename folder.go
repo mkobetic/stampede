@@ -38,7 +38,7 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 			headerFinished = false
 			messages = append(messages, message)
 		} else if !headerFinished {
-			headerFinished = message.scanHeaderLine(line)
+			headerFinished = !message.scanHeaderLine(line)
 		}
 		position += len(line)
 		for err == bufio.ErrBufferFull { // read the rest of the line
@@ -50,6 +50,7 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 		log.Fatal("Folder length mismatch!")
 	}
 	log.Println("\t", info.Name(), len(messages))
+	folder.Messages = messages
 	return folder
 }
 

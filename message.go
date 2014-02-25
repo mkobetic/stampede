@@ -79,6 +79,9 @@ var (
 
 func decodeDate(line []byte) (time.Time, error) {
 	fields := dateParser.FindStringSubmatch(string(line))
+	if fields == nil {
+		return time.Time{}, errors.New("Invalid Date Format: " + string(line))
+	}
 	day, err := strconv.Atoi(fields[3])
 	if err != nil {
 		return time.Time{}, errors.New("Invalid Day of Month")
