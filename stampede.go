@@ -3,43 +3,40 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/gorilla/mux"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
 )
 
 var (
 	root      = flag.String("root", "$HOME/mail", "directory containing the mail archive")
-	Root      map[string]*MailDirectory
+	Root      *MailDirectory
 	Templates = template.Must(template.New("all").ParseGlob("*.template"))
 )
 
 func main() {
 	flag.Parse()
-	Root = OpenRoot(os.ExpandEnv(*root))
-	log.Println("Templates: ")
-	for _, t := range Templates.Templates() {
-		log.Println(t.Name())
-	}
-	//	http.HandleFunc("/", render("stampede.template"))
-	r := mux.NewRouter()
-	r.HandleFunc("/", rootList).Methods("GET")
-	r.HandleFunc("/{directory}", directoryList).Methods("GET")
-	r.HandleFunc("/{directory}/{folder}", folderList).Methods("GET")
-	http.Handle("/", r)
+	Root = OpenDirectory(os.ExpandEnv(*root), nil)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { Directory(w, Root) })
+	//r := mux.NewRouter()
+	//r.HandleFunc("/", rootList).Methods("GET")
+	//r.HandleFunc("/{directory}", directoryList).Methods("GET")
+	//r.HandleFunc("/{directory}/{folder}", folderList).Methods("GET")
+	//http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func directoryList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	directory, ok := Root[vars["directory"]]
+	directory, ok := Root.Directories[vars["directory"]]
 	if !ok {
 		http.NotFound(w, r)
 		return
 	}
-	list := make([]string, 0, len(directory.Folders))
+	list := make([]string, 0)
 	for key := range directory.Folders {
 		list = append(list, key)
 	}
@@ -47,8 +44,8 @@ func directoryList(w http.ResponseWriter, r *http.Request) {
 }
 
 func rootList(w http.ResponseWriter, r *http.Request) {
-	list := make([]string, 0, len(Root))
-	for key := range Root {
+	list := make([]string, 0, len(Root.Folders))
+	for key := range Root.Folders {
 		list = append(list, key)
 	}
 	jsonResponse(w, list)
@@ -56,7 +53,7 @@ func rootList(w http.ResponseWriter, r *http.Request) {
 
 func folderList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	directory, ok := Root[vars["directory"]]
+	directory, ok := Root.Directories[vars["directory"]]
 	if !ok {
 		http.NotFound(w, r)
 		return

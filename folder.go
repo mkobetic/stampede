@@ -47,7 +47,7 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 		}
 	}
 	if int64(position) != info.Size() {
-		log.Fatal("Folder length mismatch!")
+		log.Fatalf("Folder %s length mismatch (%d != %d)!", folder.Name, position, info.Size())
 	}
 	log.Println("\t", info.Name(), len(messages))
 	folder.Messages = messages

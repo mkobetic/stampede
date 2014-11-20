@@ -1,0 +1,12 @@
+<%! func Directory(w io.Writer, dir *MailDirectory) error %>
+
+<html>
+<nav>
+	<% for n := range dir.Directories { %>
+        <div><%= n%></div>
+    <% } %>
+	<% for n := range dir.Folders { %>
+        <div><%= n%></div>
+    <% } %>
+</nav>
+</html>
