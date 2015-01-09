@@ -1,12 +1,14 @@
-<%! func Directory(w io.Writer, dir *MailDirectory) error %>
+<%! func DirectoryPage(w io.Writer, dir *MailDirectory) error %>
 
 <html>
 <nav>
-	<% for n := range dir.Directories { %>
-        <div><%= n%></div>
-    <% } %>
-	<% for n := range dir.Folders { %>
-        <div><%= n%></div>
-    <% } %>
+	<ul>
+		<% for n := range dir.Directories { %>
+			<li><a href="/directory/<%= n %>"><%= n %></a></li>
+	    <% } %>
+		<% for n := range dir.Folders { %>
+			<li><a href="/folder/<%= n %>"><%= n %></a></li>
+	    <% } %>
+	</ul>
 </nav>
 </html>

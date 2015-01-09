@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -11,26 +12,6 @@ type MailDirectory struct {
 	Name        string
 	Directories map[string]*MailDirectory
 	Folders     map[string]*MailFolder
-}
-
-func OpenRoot(path string) map[string]*MailDirectory {
-	root, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer root.Close()
-	infos, err := root.Readdir(0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	directories := make(map[string]*MailDirectory)
-	for _, info := range infos {
-		if info.IsDir() {
-			directory := OpenDirectory(filepath.Join(path, info.Name()), info)
-			directories[directory.Name] = directory
-		}
-	}
-	return directories
 }
 
 func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
@@ -67,4 +48,13 @@ func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
 	directory.Folders = folders
 	directory.Directories = directories
 	return directory
+}
+
+func (d *MailDirectory) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	DirectoryPage(w, d)
+}
+
+func (d *MailDirectory) Find(path []string) http.Handler {
+	// d.Directories
+	return nil
 }
