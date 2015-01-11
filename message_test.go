@@ -7,31 +7,43 @@ import (
 func TestMailMessageScanHeaderLine(t *testing.T) {
 	var m *MailMessage = &MailMessage{}
 	if m.scanHeaderLine([]byte("\n")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if m.scanHeaderLine([]byte("\r\n")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if m.scanHeaderLine([]byte(" \n")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if m.scanHeaderLine([]byte(" 	 	 	\n")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if m.scanHeaderLine([]byte("")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if !m.scanHeaderLine([]byte("Subject: Hello World\n")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if string(m.Summary.Subject) != "Hello World" {
-		t.Fatal()
+		t.Fail()
 	}
 	if !m.scanHeaderLine([]byte("From: John Doe\n")) {
-		t.Fatal()
+		t.Fail()
 	}
 	if string(m.Summary.From) != "John Doe" {
-		t.Fatal()
+		t.Fail()
+	}
+	if !m.scanHeaderLine([]byte("Message-Id: xxx\n")) {
+		t.Fail()
+	}
+	if string(m.Summary.Id) != "xxx" {
+		t.Fail()
+	}
+	if !m.scanHeaderLine([]byte("Message-ID: xxx\n")) {
+		t.Fail()
+	}
+	if string(m.Summary.Id) != "xxx" {
+		t.Fail()
 	}
 }
 

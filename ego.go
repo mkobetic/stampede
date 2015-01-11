@@ -52,14 +52,44 @@ _, _ = fmt.Fprintf(w, "\n\t\t\t<li><a href=\"")
 //line folder.ego:7
 _, _ = fmt.Fprintf(w, "%v",  m.UrlPath() )
 //line folder.ego:7
-_, _ = fmt.Fprintf(w, "\">")
-//line folder.ego:7
-_, _ = fmt.Fprintf(w, "%v",  m.String() )
-//line folder.ego:7
-_, _ = fmt.Fprintf(w, "</a></li>\n\t    ")
+_, _ = fmt.Fprintf(w, "\">\n\t\t\t\t<span>")
 //line folder.ego:8
- } 
+_, _ = fmt.Fprintf(w, "%v",  m.hSent() )
+//line folder.ego:8
+_, _ = fmt.Fprintf(w, "</span>\n\t\t\t\t<span>")
 //line folder.ego:9
+_, _ = fmt.Fprintf(w, "%v",  m.hSubject() )
+//line folder.ego:9
+_, _ = fmt.Fprintf(w, "</span>\n\t\t\t\t<span>")
+//line folder.ego:10
+_, _ = fmt.Fprintf(w, "%v",  m.hSender() )
+//line folder.ego:10
+_, _ = fmt.Fprintf(w, "</span>\n\t\t\t</a></li>\n\t    ")
+//line folder.ego:12
+ } 
+//line folder.ego:13
 _, _ = fmt.Fprintf(w, "\n\t</ul>\n</nav>\n</html>\n")
+return nil
+}
+//line message.ego:1
+ func MessagePage(w io.Writer, msg *MailMessage, body io.Reader) error  {
+//line message.ego:2
+_, _ = fmt.Fprintf(w, "\n<html>\n<div>\n\t<span>")
+//line message.ego:4
+_, _ = fmt.Fprintf(w, "%v",  msg.hSent() )
+//line message.ego:4
+_, _ = fmt.Fprintf(w, "</span>\n\t<span>")
+//line message.ego:5
+_, _ = fmt.Fprintf(w, "%v",  msg.hSubject() )
+//line message.ego:5
+_, _ = fmt.Fprintf(w, "</span>\n\t<span>")
+//line message.ego:6
+_, _ = fmt.Fprintf(w, "%v",  msg.hSender() )
+//line message.ego:6
+_, _ = fmt.Fprintf(w, "</span>\n</div>\n<div><pre>")
+//line message.ego:8
+ io.Copy(EscapeContent(w),body) 
+//line message.ego:8
+_, _ = fmt.Fprintf(w, "</pre></div>\n</html>\n")
 return nil
 }

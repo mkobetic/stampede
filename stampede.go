@@ -16,30 +16,19 @@ var (
 func main() {
 	flag.Parse()
 	Root = OpenDirectory(os.ExpandEnv(*root), nil)
+	defer Root.Close()
 	http.HandleFunc("/", Navigate)
-	// http.HandleFunc("/directory/", Directory)
-	//	http.HandleFunc("/folder", func(w http.ResponseWriter, r *http.Request) { Folder(w, Root) })
 	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func Directory(w http.ResponseWriter, r *http.Request) {
-	dn := strings.TrimPrefix(r.URL.Path, "/directory/")
-	d, found := Root.Directories[dn]
-	if !found {
-		d = Root
-	}
-	DirectoryPage(w, d)
 }
 
 func Navigate(w http.ResponseWriter, r *http.Request) {
 	var path []string
-	if r.URL.Path != "/" {
-		path = strings.Split(r.URL.Path, "/")
-		if len(path) > 0 && len(path[0]) == 0 {
-			path = path[1:]
-		}
+	// URL.Path always starts with a /
+	path = strings.Split(r.URL.Path[1:], "/")
+	if len(path) > 0 && len(path[0]) == 0 {
+		path = path[1:]
 	}
-	log.Print(r.URL.Path, len(path), path)
+	log.Printf("Navigate %#v", path)
 	if d := Root.Find(path); d != nil {
 		d.ServeHTTP(w, r)
 	} else {

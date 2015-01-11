@@ -1,0 +1,9 @@
+<%! func MessagePage(w io.Writer, msg *MailMessage, body io.Reader) error %>
+<html>
+<div>
+	<span><%= msg.hSent() %></span>
+	<span><%= msg.hSubject() %></span>
+	<span><%= msg.hSender() %></span>
+</div>
+<div><pre><% io.Copy(EscapeContent(w),body) %></pre></div>
+</html>

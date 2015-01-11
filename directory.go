@@ -50,6 +50,15 @@ func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
 	return directory
 }
 
+func (d *MailDirectory) Close() {
+	for _, f := range d.Folders {
+		f.Close()
+	}
+	for _, s := range d.Directories {
+		s.Close()
+	}
+}
+
 func (d *MailDirectory) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	DirectoryPage(w, d)
 }
@@ -62,7 +71,7 @@ func (d *MailDirectory) Find(path []string) http.Handler {
 	if len(path) == 0 {
 		return d
 	} else if f, found := d.Folders[path[0]]; found {
-		return f
+		return f.Find(path[1:])
 	} else if s, found := d.Directories[path[0]]; found {
 		return s.Find(path[1:])
 	}

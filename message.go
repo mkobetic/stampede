@@ -3,6 +3,10 @@ package main
 import (
 	"bytes"
 	"errors"
+	"html"
+	"io"
+	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -10,8 +14,8 @@ import (
 
 type MailMessage struct {
 	Folder        *MailFolder
-	start, length int
-	header_length int
+	start, length int64
+	header_length int64
 	From          string // mbox separator from part
 	Date          string // mbox separator date part
 	Summary       MessageSummary
@@ -30,28 +34,51 @@ func (m *MailMessage) UrlPath() string {
 	return m.Folder.UrlPath() + "/" + m.Summary.Id
 }
 
-func (m *MailMessage) String() string {
-	return m.Summary.Date.Format("06/01/02 03:04:05") +
-		m.Summary.Subject +
-		m.Summary.From
+func (m *MailMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	file, err := os.Open(m.Folder.Path)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	defer file.Close()
+	if _, err := file.Seek(m.start, os.SEEK_SET); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	b := io.LimitReader(file, m.length)
+	MessagePage(w, m, b)
 }
+
+// Message rendering.
+
+func (m *MailMessage) hSent() string {
+	return m.Summary.Date.Format("06/01/02 03:04:05")
+}
+
+func (m *MailMessage) hSubject() string {
+	return html.EscapeString(m.Summary.Subject)
+}
+
+func (m *MailMessage) hSender() string {
+	return html.EscapeString(m.Summary.From)
+}
+
+// Message scanning.
 
 func (m *MailMessage) scanHeaderLine(line []byte) bool {
 	// FIXME: if any header line exceeds buffer size header_length will be off
-	m.header_length += len(line)
+	m.header_length += int64(len(line))
 	if len(line) < 3 || len(bytes.TrimSpace(line)) == 0 {
 		return false
 	}
-	switch {
-	case line[0] == 'S':
+	switch line[0] {
+	case 'S':
 		m.scanHeaderLineS(line)
-	case line[0] == 'F':
+	case 'F':
 		m.scanHeaderLineF(line)
-	case line[0] == 'D':
+	case 'D':
 		m.scanHeaderLineD(line)
-	case line[0] == 'X':
+	case 'X':
 		m.scanHeaderLineX(line)
-	case line[0] == 'M':
+	case 'M':
 		m.scanHeaderLineM(line)
 	}
 	return true
