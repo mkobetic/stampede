@@ -4,15 +4,17 @@ import (
 	"bufio"
 	"bytes"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
 
 type MailFolder struct {
-	Directory *MailDirectory
-	Path      string
-	Name      string
-	Messages  []*MailMessage
+	Directory    *MailDirectory
+	Path         string
+	Name         string
+	Messages     []*MailMessage
+	MessagesById map[string]*MailMessage
 }
 
 func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFolder {
@@ -23,9 +25,10 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 	defer file.Close()
 	reader := bufio.NewReader(file)
 	messages := make([]*MailMessage, 0, 20)
+	messagesById := make(map[string]*MailMessage)
 	position := 0
 	headerFinished := false
-	folder := &MailFolder{directory, path, info.Name(), nil}
+	folder := &MailFolder{Directory: directory, Path: path, Name: info.Name()}
 	message := &MailMessage{Folder: folder}
 	for {
 		line, err := reader.ReadSlice('\n')
@@ -37,6 +40,7 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 			message = &MailMessage{Folder: folder, start: position}
 			headerFinished = false
 			messages = append(messages, message)
+			messagesById[message.Summary.Id] = message
 		} else if !headerFinished {
 			headerFinished = !message.scanHeaderLine(line)
 		}
@@ -51,7 +55,16 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 	}
 	log.Println("\t", info.Name(), len(messages))
 	folder.Messages = messages
+	folder.MessagesById = messagesById
 	return folder
+}
+
+func (f *MailFolder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	FolderPage(w, f)
+}
+
+func (f *MailFolder) UrlPath() string {
+	return f.Directory.UrlPath() + "/" + f.Name
 }
 
 var (

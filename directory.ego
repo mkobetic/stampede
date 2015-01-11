@@ -3,11 +3,11 @@
 <html>
 <nav>
 	<ul>
-		<% for n := range dir.Directories { %>
-			<li><a href="/directory/<%= n %>"><%= n %></a></li>
+		<% for n, d := range dir.Directories { %>
+			<li><a href="<%= d.UrlPath() %>"><%= n %></a></li>
 	    <% } %>
-		<% for n := range dir.Folders { %>
-			<li><a href="/folder/<%= n %>"><%= n %></a></li>
+		<% for n, f := range dir.Folders { %>
+			<li><a href="<%= f.UrlPath() %>"><%= n %></a></li>
 	    <% } %>
 	</ul>
 </nav>

@@ -18,11 +18,22 @@ type MailMessage struct {
 }
 
 type MessageSummary struct {
+	Id      string
 	Subject string
 	Date    time.Time
 	From    string
 	To      string
 	Status  string
+}
+
+func (m *MailMessage) UrlPath() string {
+	return m.Folder.UrlPath() + "/" + m.Summary.Id
+}
+
+func (m *MailMessage) String() string {
+	return m.Summary.Date.Format("06/01/02 03:04:05") +
+		m.Summary.Subject +
+		m.Summary.From
 }
 
 func (m *MailMessage) scanHeaderLine(line []byte) bool {
@@ -40,6 +51,8 @@ func (m *MailMessage) scanHeaderLine(line []byte) bool {
 		m.scanHeaderLineD(line)
 	case line[0] == 'X':
 		m.scanHeaderLineX(line)
+	case line[0] == 'M':
+		m.scanHeaderLineM(line)
 	}
 	return true
 }
@@ -62,6 +75,20 @@ func (m *MailMessage) scanHeaderLineD(line []byte) {
 	value := bytes.TrimPrefix(line, []byte("Date: "))
 	if len(line) > len(value) {
 		m.Summary.Date, _ = decodeDate(value)
+	}
+}
+
+func (m *MailMessage) scanHeaderLineM(line []byte) {
+	// Process Message-ID/Message-Id field.
+	value := bytes.TrimPrefix(line, []byte("Message-I"))
+	if len(line) == len(value) {
+		return
+	}
+	value2 := bytes.TrimPrefix(value, []byte("d: "))
+	if len(value) > len(value2) {
+		m.Summary.Id = decodeString(value2)
+	} else if value2 = bytes.TrimPrefix(value, []byte("D: ")); len(value) > len(value2) {
+		m.Summary.Id = decodeString(value2)
 	}
 }
 

@@ -54,7 +54,17 @@ func (d *MailDirectory) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	DirectoryPage(w, d)
 }
 
+func (d *MailDirectory) UrlPath() string {
+	return "/" + d.Name
+}
+
 func (d *MailDirectory) Find(path []string) http.Handler {
-	// d.Directories
+	if len(path) == 0 {
+		return d
+	} else if f, found := d.Folders[path[0]]; found {
+		return f
+	} else if s, found := d.Directories[path[0]]; found {
+		return s.Find(path[1:])
+	}
 	return nil
 }

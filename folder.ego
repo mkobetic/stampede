@@ -1,0 +1,11 @@
+<%! func FolderPage(w io.Writer, folder *MailFolder) error %>
+
+<html>
+<nav>
+	<ul>
+		<% for _, m := range folder.Messages { %>
+			<li><a href="<%= m.UrlPath() %>"><%= m.String() %></a></li>
+	    <% } %>
+	</ul>
+</nav>
+</html>
