@@ -1,14 +1,12 @@
 <%! func DirectoryPage(w io.Writer, dir *MailDirectory) error %>
 
 <html>
-<nav>
-	<ul>
-		<% for n, d := range dir.Directories { %>
-			<li><a href="<%= d.UrlPath() %>"><%= n %></a></li>
-	    <% } %>
-		<% for n, f := range dir.Folders { %>
-			<li><a href="<%= f.UrlPath() %>"><%= n %></a></li>
-	    <% } %>
-	</ul>
+<head>
+<link href="/assets/stampede.css" rel="stylesheet">
+</head>
+<body>
+<nav class="sidebar">
+<% FolderTree(w, Root) %>
 </nav>
+</body>
 </html>

@@ -1,9 +1,19 @@
 <%! func MessagePage(w io.Writer, msg *MailMessage, body io.Reader) error %>
 <html>
+<head>
+<link href="/assets/stampede.css" rel="stylesheet">
+</head>
+<body>
+<nav class="sidebar">
+<% FolderTree(w, Root) %>
+</nav>
+<div class="content">
 <div>
 	<span><%= msg.hSent() %></span>
 	<span><%= msg.hSubject() %></span>
 	<span><%= msg.hSender() %></span>
 </div>
 <div><pre><% io.Copy(EscapeContent(w),body) %></pre></div>
+</div>
+</body>
 </html>

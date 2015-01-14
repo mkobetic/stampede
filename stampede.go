@@ -9,15 +9,17 @@ import (
 )
 
 var (
-	root = flag.String("root", "$HOME/mail", "directory containing the mail archive")
-	Root *MailDirectory
+	root   = flag.String("root", "$HOME/mail", "directory containing the mail archive")
+	assets = flag.String("assets", "assets", "directory containing asset files (css, ...)")
+	Root   *MailDirectory
 )
 
 func main() {
 	flag.Parse()
 	Root = OpenDirectory(os.ExpandEnv(*root), nil)
-	defer Root.Close()
 	http.HandleFunc("/", Navigate)
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(*assets))))
+	log.Print("Listening at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

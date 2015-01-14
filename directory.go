@@ -50,15 +50,6 @@ func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
 	return directory
 }
 
-func (d *MailDirectory) Close() {
-	for _, f := range d.Folders {
-		f.Close()
-	}
-	for _, s := range d.Directories {
-		s.Close()
-	}
-}
-
 func (d *MailDirectory) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	DirectoryPage(w, d)
 }

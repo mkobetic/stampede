@@ -27,7 +27,64 @@ type MessageSummary struct {
 	Date    time.Time
 	From    string
 	To      string
-	Status  string
+	Status  MozillaStatus
+}
+
+type MozillaStatus int
+
+// Following definitions were copied from
+// http://www.eyrich-net.org/mozilla/X-Mozilla-Status.html?en
+const (
+	// Message has been read.
+	MSG_FLAG_READ MozillaStatus = 0x0001
+	// A reply has been successfully sent.
+	MSG_FLAG_REPLIED = 0x0002
+	// The user has flagged this message.
+	MSG_FLAG_MARKED = 0x0004
+	// Already gone (when folder not compacted). Since actually removing a message
+	// from a folder is a semi-expensive operation, we tend to delay it;
+	// messages with this bit set will be removed the next time folder compaction is done.
+	// Once this bit is set, it never gets un-set.
+	MSG_FLAG_EXPUNGED = 0x0008
+	// Whether subject has “Re:” on the front. The folder summary uniquifies all of the strings in it,
+	// and to help this, any string which begins with “Re:” has that stripped first.
+	// This bit is then set, so that when presenting the message, we know to put it back
+	// (since the “Re:” is not itself stored in the file).
+	MSG_FLAG_HAS_RE = 0x0010
+	// Whether the children of this sub-thread are folded in the display.
+	MSG_FLAG_ELIDED = 0x0020
+	// DB has offline news or imap article.
+	MSG_FLAG_OFFLINE = 0x0080
+	// If set, this thread is watched.
+	MSG_FLAG_WATCHED = 0x0100
+	// If set, then this message's sender has been authenticated when sending this msg.
+	// This means the POP3 server gave a positive answer to the XSENDER command.
+	// Since this command is no standard and only known by few servers, this flag is unmeaning in most cases.
+	MSG_FLAG_SENDER_AUTHED = 0x0200
+	// If set, then this message's body contains not the whole message, and a link is available
+	// in the message to download the rest of it from the POP server.
+	// This can be only a few lines of the message (in case of size restriction for the download of messages)
+	// or nothing at all (in case of “Fetch headers only”)
+	MSG_FLAG_PARTIAL = 0x0400
+	// If set, this message is queued for delivery. This only ever gets set on messages in the queue folder,
+	// but is used to protect against the case of other messages having made their way in there somehow
+	// – if some other program put a message in the queue, it won't be delivered later!
+	MSG_FLAG_QUEUED = 0x0800
+	// This message has been forwarded.
+	MSG_FLAG_FORWARDED = 0x1000
+	//These are used to remember the message priority in interal status flags.
+	MSG_FLAG_PRIORITIES = 0xE000
+)
+
+func (s MozillaStatus) cClass() string {
+	switch {
+	case s&MSG_FLAG_EXPUNGED != 0:
+		return "msg expunged"
+	case s&MSG_FLAG_READ != 0:
+		return "msg read"
+	default:
+		return "msg unread"
+	}
 }
 
 func (m *MailMessage) UrlPath() string {
@@ -59,6 +116,10 @@ func (m *MailMessage) hSubject() string {
 
 func (m *MailMessage) hSender() string {
 	return html.EscapeString(m.Summary.From)
+}
+
+func (m *MailMessage) cClass() string {
+	return m.Summary.Status.cClass()
 }
 
 // Message scanning.
@@ -120,6 +181,11 @@ func (m *MailMessage) scanHeaderLineM(line []byte) {
 }
 
 func (m *MailMessage) scanHeaderLineX(line []byte) {
+	value := bytes.TrimPrefix(line, []byte("X-mozilla-status: "))
+	if len(line) > len(value) {
+		i, _ := strconv.ParseInt(string(value[:4]), 16, 0)
+		m.Summary.Status = MozillaStatus(i)
+	}
 }
 
 func decodeString(line []byte) string {

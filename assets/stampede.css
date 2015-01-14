@@ -1,0 +1,56 @@
+body {
+	height: 100%;
+	overflow: hidden
+}
+
+/* Folder Tree */
+.sidebar {
+	width: 200px;
+	float: left;
+	height: 100%;
+	overflow: scroll
+}
+
+.sidebar > ul {
+	padding-left: 0px;
+	margin: 0px;
+}
+
+.sidebar ul {
+	/* padding-left: 0px; */
+	/* margin-top: 0px; */
+	list-style-type: none
+}
+
+/* Content pane */
+.content {
+	height: 100%;
+	overflow: scroll
+}
+
+.content > ul {
+	padding-left: 0px;
+	margin: 0px;
+}
+
+/* FolderPage message list */
+
+ul.msgs {
+	padding-left: 0px;
+	list-style-type: none;
+}
+
+li.msg.unread {
+	font-weight: bold
+}
+
+li.msg a {
+	text-decoration: none
+}
+
+li.msg.read {}
+
+li.msg.expunged {
+	display: none;
+	text-decoration: line-through
+}

@@ -1,15 +1,23 @@
 <%! func FolderPage(w io.Writer, folder *MailFolder) error %>
 
 <html>
-<nav>
-	<ul>
-		<% for _, m := range folder.Messages { %>
-			<li><a href="<%= m.UrlPath() %>">
-				<span><%= m.hSent() %></span>
-				<span><%= m.hSubject() %></span>
-				<span><%= m.hSender() %></span>
-			</a></li>
-	    <% } %>
-	</ul>
+<head>
+<link href="/assets/stampede.css" rel="stylesheet">
+</head>
+<body>
+<nav class="sidebar">
+<% FolderTree(w, Root) %>
 </nav>
+<div class="content">
+<ul class="msgs ">
+	<% for _, m := range folder.Messages { %>
+		<li class="<%= m.cClass() %>"><a href="<%= m.UrlPath() %>">
+			<span><%= m.hSent() %></span>
+			<span><%= m.hSubject() %></span>
+			<span><%= m.hSender() %></span>
+		</a></li>
+    <% } %>
+</ul>
+</div>
+</body>
 </html>

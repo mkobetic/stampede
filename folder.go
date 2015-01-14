@@ -60,9 +60,6 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 	return folder
 }
 
-func (f *MailFolder) Close() {
-}
-
 func (f *MailFolder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	FolderPage(w, f)
 }
