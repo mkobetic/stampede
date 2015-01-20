@@ -1,9 +1,9 @@
 <%! func FolderTree(w io.Writer, dir *MailDirectory) error %>
 <ul>
-	<% for n, d := range dir.Directories { %>
-		<li><a href="<%= d.UrlPath() %>"><%= n %></a><% FolderTree(w,d) %></li>
+	<% for _, d := range dir.Directories { %>
+		<li><a href="<%= d.UrlPath() %>"><%= d.Label() %></a><% FolderTree(w,d) %></li>
     <% } %>
-	<% for n, f := range dir.Folders { %>
-		<li><a href="<%= f.UrlPath() %>"><%= n %></a></li>
+	<% for _, f := range dir.Folders { %>
+		<li><a href="<%= f.UrlPath() %>"><%= f.Label() %></a></li>
     <% } %>
 </ul>

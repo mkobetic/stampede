@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -75,6 +76,10 @@ func (f *MailFolder) Find(path []string) http.Handler {
 
 func (f *MailFolder) UrlPath() string {
 	return f.Directory.UrlPath() + "/" + f.Name
+}
+
+func (f *MailFolder) Label() string {
+	return fmt.Sprintf("%s (%d)", f.Name, len(f.Messages))
 }
 
 var (

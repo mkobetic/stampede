@@ -56,7 +56,7 @@ return nil
 //line folders.ego:2
 _, _ = fmt.Fprintf(w, "\n<ul>\n\t")
 //line folders.ego:3
- for n, d := range dir.Directories { 
+ for _, d := range dir.Directories { 
 //line folders.ego:4
 _, _ = fmt.Fprintf(w, "\n\t\t<li><a href=\"")
 //line folders.ego:4
@@ -64,7 +64,7 @@ _, _ = fmt.Fprintf(w, "%v",  d.UrlPath() )
 //line folders.ego:4
 _, _ = fmt.Fprintf(w, "\">")
 //line folders.ego:4
-_, _ = fmt.Fprintf(w, "%v",  n )
+_, _ = fmt.Fprintf(w, "%v",  d.Label() )
 //line folders.ego:4
 _, _ = fmt.Fprintf(w, "</a>")
 //line folders.ego:4
@@ -76,7 +76,7 @@ _, _ = fmt.Fprintf(w, "</li>\n    ")
 //line folders.ego:6
 _, _ = fmt.Fprintf(w, "\n\t")
 //line folders.ego:6
- for n, f := range dir.Folders { 
+ for _, f := range dir.Folders { 
 //line folders.ego:7
 _, _ = fmt.Fprintf(w, "\n\t\t<li><a href=\"")
 //line folders.ego:7
@@ -84,7 +84,7 @@ _, _ = fmt.Fprintf(w, "%v",  f.UrlPath() )
 //line folders.ego:7
 _, _ = fmt.Fprintf(w, "\">")
 //line folders.ego:7
-_, _ = fmt.Fprintf(w, "%v",  n )
+_, _ = fmt.Fprintf(w, "%v",  f.Label() )
 //line folders.ego:7
 _, _ = fmt.Fprintf(w, "</a></li>\n    ")
 //line folders.ego:8

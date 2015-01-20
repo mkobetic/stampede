@@ -58,6 +58,22 @@ func (d *MailDirectory) UrlPath() string {
 	return "/" + d.Name
 }
 
+func (d *MailDirectory) Label() string {
+	return d.Name
+}
+
+func (d *MailDirectory) MessageStats() (count, size int64) {
+	for _, s := range d.Directories {
+		c, s := s.MessageStats()
+		count += c
+		size += s
+	}
+	for _, f := range d.Folders {
+		count += int64(len(f.Messages))
+	}
+	return count, size
+}
+
 func (d *MailDirectory) Find(path []string) http.Handler {
 	if len(path) == 0 {
 		return d
