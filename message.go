@@ -185,6 +185,9 @@ func (m *MailMessage) scanHeaderLineX(line []byte) {
 	if len(line) > len(value) {
 		i, _ := strconv.ParseInt(string(value[:4]), 16, 0)
 		m.Summary.Status = MozillaStatus(i)
+	} else if value = bytes.TrimPrefix(line, []byte("X-Mozilla-Status: ")); len(line) > len(value) {
+		i, _ := strconv.ParseInt(string(value[:4]), 16, 0)
+		m.Summary.Status = MozillaStatus(i)
 	}
 }
 

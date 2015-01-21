@@ -4,6 +4,6 @@
 		<li><a href="<%= d.UrlPath() %>"><%= d.Label() %></a><% FolderTree(w,d) %></li>
     <% } %>
 	<% for _, f := range dir.Folders { %>
-		<li><a href="<%= f.UrlPath() %>"><%= f.Label() %></a></li>
+		<li class="<%= f.cClass() %>"><a href="<%= f.UrlPath() %>"><%= f.Label() %></a></li>
     <% } %>
 </ul>

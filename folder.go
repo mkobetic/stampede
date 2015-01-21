@@ -78,8 +78,61 @@ func (f *MailFolder) UrlPath() string {
 	return f.Directory.UrlPath() + "/" + f.Name
 }
 
+func (f *MailFolder) cClass() string {
+	if f.Stats().Unread.Count > 0 {
+		return "folder unread"
+	} else {
+		return "folder"
+	}
+}
+
 func (f *MailFolder) Label() string {
-	return fmt.Sprintf("%s (%d)", f.Name, len(f.Messages))
+	u := f.Stats().Unread.Count
+	if u > 0 {
+		return fmt.Sprintf("%s (%d)", f.Name, u)
+	} else {
+		return f.Name
+	}
+}
+
+func (f *MailFolder) Stats() *MessageStats {
+	s := new(MessageStats)
+	for _, m := range f.Messages {
+		s.Add(m)
+	}
+	return s
+}
+
+type MessageStats struct {
+	Read    Total
+	Unread  Total
+	Deleted Total
+}
+
+func (s *MessageStats) Add(m *MailMessage) {
+	switch m.cClass() {
+	case "msg expunged":
+		(&s.Deleted).AddSize(m.length)
+	case "msg unread":
+		(&s.Unread).AddSize(m.length)
+	default:
+		(&s.Read).AddSize(m.length)
+	}
+}
+
+type Total struct {
+	Count int64
+	Size  int64
+}
+
+func (t *Total) Add(u Total) {
+	t.Count += u.Count
+	t.Size += u.Size
+}
+
+func (t *Total) AddSize(s int64) {
+	t.Count += 1
+	t.Size += s
 }
 
 var (

@@ -78,7 +78,11 @@ _, _ = fmt.Fprintf(w, "\n\t")
 //line folders.ego:6
  for _, f := range dir.Folders { 
 //line folders.ego:7
-_, _ = fmt.Fprintf(w, "\n\t\t<li><a href=\"")
+_, _ = fmt.Fprintf(w, "\n\t\t<li class=\"")
+//line folders.ego:7
+_, _ = fmt.Fprintf(w, "%v",  f.cClass() )
+//line folders.ego:7
+_, _ = fmt.Fprintf(w, "\"><a href=\"")
 //line folders.ego:7
 _, _ = fmt.Fprintf(w, "%v",  f.UrlPath() )
 //line folders.ego:7

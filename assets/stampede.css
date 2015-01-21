@@ -22,6 +22,14 @@ body {
 	list-style-type: none
 }
 
+.sidebar li.folder.unread {
+	font-weight: bold
+}
+
+.sidebar a {
+	text-decoration: none
+}
+
 /* Content pane */
 .content {
 	height: 100%;
