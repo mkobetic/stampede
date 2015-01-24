@@ -10,7 +10,55 @@ _, _ = fmt.Fprintf(w, "\n\n<html>\n<head>\n<link href=\"/assets/stampede.css\" r
 //line directory.ego:9
  FolderTree(w, Root) 
 //line directory.ego:10
-_, _ = fmt.Fprintf(w, "\n</nav>\n</body>\n</html>\n")
+_, _ = fmt.Fprintf(w, "\n</nav>\n")
+//line directory.ego:11
+ s := dir.Stats() 
+//line directory.ego:12
+_, _ = fmt.Fprintf(w, "\n")
+//line directory.ego:12
+ t := s.Total() 
+//line directory.ego:13
+_, _ = fmt.Fprintf(w, "\n<div class=\"content\">\n<table>\n\t<th><td>Count</td><td>Size</td>\n\t</th><tr><td>Unread</td>\n\t\t<td>")
+//line directory.ego:17
+_, _ = fmt.Fprintf(w, "%v",  s.Unread.Count )
+//line directory.ego:17
+_, _ = fmt.Fprintf(w, " [")
+//line directory.ego:17
+_, _ = fmt.Fprintf(w, "%v",  s.Unread.Count * 100 / t.Count )
+//line directory.ego:17
+_, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
+//line directory.ego:18
+_, _ = fmt.Fprintf(w, "%v",  s.Unread.Size )
+//line directory.ego:18
+_, _ = fmt.Fprintf(w, " [")
+//line directory.ego:18
+_, _ = fmt.Fprintf(w, "%v",  s.Unread.Size * 100 / t.Size )
+//line directory.ego:18
+_, _ = fmt.Fprintf(w, "%%]</dd>\n\t</tr><tr><td>Deleted</td>\n\t\t<td>")
+//line directory.ego:20
+_, _ = fmt.Fprintf(w, "%v",  s.Deleted.Count )
+//line directory.ego:20
+_, _ = fmt.Fprintf(w, " [")
+//line directory.ego:20
+_, _ = fmt.Fprintf(w, "%v",  s.Deleted.Count * 100 / t.Count )
+//line directory.ego:20
+_, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
+//line directory.ego:21
+_, _ = fmt.Fprintf(w, "%v",  s.Deleted.Size )
+//line directory.ego:21
+_, _ = fmt.Fprintf(w, " [")
+//line directory.ego:21
+_, _ = fmt.Fprintf(w, "%v",  s.Deleted.Size * 100 / t.Size )
+//line directory.ego:21
+_, _ = fmt.Fprintf(w, "%%]</dd>\n\t</tr><tr>\n\t<td>Messages</td>\n\t\t<td>")
+//line directory.ego:24
+_, _ = fmt.Fprintf(w, "%v",  t.Count )
+//line directory.ego:24
+_, _ = fmt.Fprintf(w, "</td>\n\t\t<td>")
+//line directory.ego:25
+_, _ = fmt.Fprintf(w, "%v",  t.Size )
+//line directory.ego:25
+_, _ = fmt.Fprintf(w, "</dd>\n\t</tr>\n</table>\n</div>\n</body>\n</html>\n")
 return nil
 }
 //line folder.ego:1

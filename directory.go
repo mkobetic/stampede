@@ -62,16 +62,15 @@ func (d *MailDirectory) Label() string {
 	return d.Name
 }
 
-func (d *MailDirectory) MessageStats() (count, size int64) {
-	for _, s := range d.Directories {
-		c, s := s.MessageStats()
-		count += c
-		size += s
+func (d *MailDirectory) Stats() *MessageStats {
+	s := new(MessageStats)
+	for _, sub := range d.Directories {
+		s.Add(sub.Stats())
 	}
 	for _, f := range d.Folders {
-		count += int64(len(f.Messages))
+		s.Add(f.Stats())
 	}
-	return count, size
+	return s
 }
 
 func (d *MailDirectory) Find(path []string) http.Handler {

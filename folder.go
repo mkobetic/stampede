@@ -98,7 +98,7 @@ func (f *MailFolder) Label() string {
 func (f *MailFolder) Stats() *MessageStats {
 	s := new(MessageStats)
 	for _, m := range f.Messages {
-		s.Add(m)
+		s.Count(m)
 	}
 	return s
 }
@@ -109,7 +109,13 @@ type MessageStats struct {
 	Deleted Total
 }
 
-func (s *MessageStats) Add(m *MailMessage) {
+func (s *MessageStats) Add(s2 *MessageStats) {
+	(&s.Read).Add(s2.Read)
+	(&s.Unread).Add(s2.Unread)
+	(&s.Deleted).Add(s2.Deleted)
+}
+
+func (s *MessageStats) Count(m *MailMessage) {
 	switch m.cClass() {
 	case "msg expunged":
 		(&s.Deleted).AddSize(m.length)
@@ -117,6 +123,13 @@ func (s *MessageStats) Add(m *MailMessage) {
 		(&s.Unread).AddSize(m.length)
 	default:
 		(&s.Read).AddSize(m.length)
+	}
+}
+
+func (s *MessageStats) Total() Total {
+	return Total{
+		Count: s.Read.Count + s.Unread.Count + s.Deleted.Count,
+		Size:  s.Read.Size + s.Unread.Size + s.Deleted.Size,
 	}
 }
 
