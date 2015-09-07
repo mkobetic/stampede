@@ -2,62 +2,65 @@ package main
 import (
 "fmt"
 "io"
+"github.com/dustin/go-humanize"
 )
 //line directory.ego:1
  func DirectoryPage(w io.Writer, dir *MailDirectory) error  {
 //line directory.ego:2
+_, _ = fmt.Fprintf(w, "\n\n")
+//line directory.ego:4
 _, _ = fmt.Fprintf(w, "\n\n<html>\n<head>\n<link href=\"/assets/stampede.css\" rel=\"stylesheet\">\n</head>\n<body>\n<nav class=\"sidebar\">\n")
-//line directory.ego:9
- FolderTree(w, Root) 
-//line directory.ego:10
-_, _ = fmt.Fprintf(w, "\n</nav>\n")
 //line directory.ego:11
- s := dir.Stats() 
+ FolderTree(w, Root) 
 //line directory.ego:12
-_, _ = fmt.Fprintf(w, "\n")
-//line directory.ego:12
- t := s.Total() 
+_, _ = fmt.Fprintf(w, "\n</nav>\n")
 //line directory.ego:13
+ s := dir.Stats() 
+//line directory.ego:14
+_, _ = fmt.Fprintf(w, "\n")
+//line directory.ego:14
+ t := s.Total() 
+//line directory.ego:15
 _, _ = fmt.Fprintf(w, "\n<div class=\"content\">\n<table>\n\t<th><td>Count</td><td>Size</td>\n\t</th><tr><td>Unread</td>\n\t\t<td>")
-//line directory.ego:17
-_, _ = fmt.Fprintf(w, "%v",  s.Unread.Count )
-//line directory.ego:17
+//line directory.ego:19
+_, _ = fmt.Fprintf(w, "%v",  humanize.Comma(s.Unread.Count) )
+//line directory.ego:19
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:17
+//line directory.ego:19
 _, _ = fmt.Fprintf(w, "%v",  s.Unread.Count * 100 / t.Count )
-//line directory.ego:17
+//line directory.ego:19
 _, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
-//line directory.ego:18
-_, _ = fmt.Fprintf(w, "%v",  s.Unread.Size )
-//line directory.ego:18
+//line directory.ego:20
+_, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(s.Unread.Size)) )
+//line directory.ego:20
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:18
+//line directory.ego:20
 _, _ = fmt.Fprintf(w, "%v",  s.Unread.Size * 100 / t.Size )
-//line directory.ego:18
+//line directory.ego:20
 _, _ = fmt.Fprintf(w, "%%]</dd>\n\t</tr><tr><td>Deleted</td>\n\t\t<td>")
-//line directory.ego:20
-_, _ = fmt.Fprintf(w, "%v",  s.Deleted.Count )
-//line directory.ego:20
+//line directory.ego:22
+_, _ = fmt.Fprintf(w, "%v",  humanize.Comma(s.Deleted.Count) )
+//line directory.ego:22
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:20
+//line directory.ego:22
 _, _ = fmt.Fprintf(w, "%v",  s.Deleted.Count * 100 / t.Count )
-//line directory.ego:20
+//line directory.ego:22
 _, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
-//line directory.ego:21
-_, _ = fmt.Fprintf(w, "%v",  s.Deleted.Size )
-//line directory.ego:21
+//line directory.ego:23
+_, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(s.Deleted.Size)) )
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:21
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, "%v",  s.Deleted.Size * 100 / t.Size )
-//line directory.ego:21
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, "%%]</dd>\n\t</tr><tr>\n\t<td>Messages</td>\n\t\t<td>")
-//line directory.ego:24
-_, _ = fmt.Fprintf(w, "%v",  t.Count )
-//line directory.ego:24
+//line directory.ego:26
+_, _ = fmt.Fprintf(w, "%v",  humanize.Comma(t.Count) )
+//line directory.ego:26
 _, _ = fmt.Fprintf(w, "</td>\n\t\t<td>")
-//line directory.ego:25
-_, _ = fmt.Fprintf(w, "%v",  t.Size )
-//line directory.ego:25
+//line directory.ego:27
+_, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(t.Size)) )
+//line directory.ego:27
 _, _ = fmt.Fprintf(w, "</dd>\n\t</tr>\n</table>\n</div>\n</body>\n</html>\n")
 return nil
 }
@@ -104,7 +107,7 @@ return nil
 //line folders.ego:2
 _, _ = fmt.Fprintf(w, "\n<ul>\n\t")
 //line folders.ego:3
- for _, d := range dir.Directories { 
+ for _, d := range dir.DirectoryList() { 
 //line folders.ego:4
 _, _ = fmt.Fprintf(w, "\n\t\t<li><a href=\"")
 //line folders.ego:4

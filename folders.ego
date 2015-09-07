@@ -1,6 +1,6 @@
 <%! func FolderTree(w io.Writer, dir *MailDirectory) error %>
 <ul>
-	<% for _, d := range dir.Directories { %>
+	<% for _, d := range dir.DirectoryList() { %>
 		<li><a href="<%= d.UrlPath() %>"><%= d.Label() %></a><% FolderTree(w,d) %></li>
     <% } %>
 	<% for _, f := range dir.Folders { %>

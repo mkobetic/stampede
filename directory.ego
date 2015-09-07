@@ -1,5 +1,7 @@
 <%! func DirectoryPage(w io.Writer, dir *MailDirectory) error %>
 
+<%% import  "github.com/dustin/go-humanize" %%>
+
 <html>
 <head>
 <link href="/assets/stampede.css" rel="stylesheet">
@@ -14,15 +16,15 @@
 <table>
 	<th><td>Count</td><td>Size</td>
 	</th><tr><td>Unread</td>
-		<td><%= s.Unread.Count %> [<%= s.Unread.Count * 100 / t.Count %>%%]</td>
-		<td><%= s.Unread.Size %> [<%= s.Unread.Size * 100 / t.Size %>%%]</dd>
+		<td><%= humanize.Comma(s.Unread.Count) %> [<%= s.Unread.Count * 100 / t.Count %>%%]</td>
+		<td><%= humanize.Bytes(uint64(s.Unread.Size)) %> [<%= s.Unread.Size * 100 / t.Size %>%%]</dd>
 	</tr><tr><td>Deleted</td>
-		<td><%= s.Deleted.Count %> [<%= s.Deleted.Count * 100 / t.Count %>%%]</td>
-		<td><%= s.Deleted.Size %> [<%= s.Deleted.Size * 100 / t.Size %>%%]</dd>
+		<td><%= humanize.Comma(s.Deleted.Count) %> [<%= s.Deleted.Count * 100 / t.Count %>%%]</td>
+		<td><%= humanize.Bytes(uint64(s.Deleted.Size)) %> [<%= s.Deleted.Size * 100 / t.Size %>%%]</dd>
 	</tr><tr>
 	<td>Messages</td>
-		<td><%= t.Count %></td>
-		<td><%= t.Size %></dd>
+		<td><%= humanize.Comma(t.Count) %></td>
+		<td><%= humanize.Bytes(uint64(t.Size)) %></dd>
 	</tr>
 </table>
 </div>

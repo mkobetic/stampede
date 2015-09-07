@@ -5,7 +5,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
+	"sync"
 )
+
+type MailDirectories []*MailDirectory
+
+func (a MailDirectories) Len() int           { return len(a) }
+func (a MailDirectories) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a MailDirectories) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
 type MailDirectory struct {
 	Path        string
@@ -14,7 +22,7 @@ type MailDirectory struct {
 	Folders     map[string]*MailFolder
 }
 
-func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
+func OpenDirectory(path string, info os.FileInfo, wg *sync.WaitGroup) *MailDirectory {
 	dir, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -37,10 +45,10 @@ func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
 	for _, info := range infos {
 		if len(filepath.Ext(info.Name())) == 0 {
 			if info.IsDir() {
-				directory := OpenDirectory(filepath.Join(path, info.Name()), info)
+				directory := OpenDirectory(filepath.Join(path, info.Name()), info, wg)
 				directories[directory.Name] = directory
 			} else {
-				folder := OpenFolder(directory, filepath.Join(path, info.Name()), info)
+				folder := OpenFolder(directory, filepath.Join(path, info.Name()), info, wg)
 				folders[folder.Name] = folder
 			}
 		}
@@ -48,6 +56,14 @@ func OpenDirectory(path string, info os.FileInfo) *MailDirectory {
 	directory.Folders = folders
 	directory.Directories = directories
 	return directory
+}
+
+func (d *MailDirectory) DirectoryList() (l MailDirectories) {
+	for _, s := range d.Directories {
+		l = append(l, s)
+	}
+	sort.Sort(l)
+	return l
 }
 
 func (d *MailDirectory) ServeHTTP(w http.ResponseWriter, r *http.Request) {

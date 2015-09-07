@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 )
 
 var (
@@ -15,8 +17,11 @@ var (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	flag.Parse()
-	Root = OpenDirectory(os.ExpandEnv(*root), nil)
+	var wg sync.WaitGroup
+	Root = OpenDirectory(os.ExpandEnv(*root), nil, &wg)
+	wg.Wait()
 	http.HandleFunc("/", Navigate)
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(*assets))))
 	log.Print("Listening at http://localhost:8080")

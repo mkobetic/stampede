@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -18,8 +19,15 @@ type MailFolder struct {
 	MessagesById map[string]*MailMessage
 }
 
-func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFolder {
-	file, err := os.Open(path)
+func OpenFolder(directory *MailDirectory, path string, info os.FileInfo, wg *sync.WaitGroup) *MailFolder {
+	folder := &MailFolder{Directory: directory, Path: path, Name: info.Name()}
+	wg.Add(1)
+	go openFolder(folder, info, wg)
+	return folder
+}
+
+func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
+	file, err := os.Open(folder.Path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +37,6 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 	messagesById := make(map[string]*MailMessage)
 	position := int64(0)
 	headerFinished := false
-	folder := &MailFolder{Directory: directory, Path: path, Name: info.Name()}
 	message := &MailMessage{Folder: folder}
 	for {
 		line, err := reader.ReadSlice('\n')
@@ -55,10 +62,10 @@ func OpenFolder(directory *MailDirectory, path string, info os.FileInfo) *MailFo
 	if int64(position) != info.Size() {
 		log.Fatalf("Folder %s length mismatch (%d != %d)!", folder.Name, position, info.Size())
 	}
-	log.Println("\t", info.Name(), len(messages))
+	log.Println(folder.UrlPath(), len(messages))
 	folder.Messages = messages
 	folder.MessagesById = messagesById
-	return folder
+	wg.Done()
 }
 
 func (f *MailFolder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
