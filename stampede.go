@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	root   = flag.String("root", "$HOME/mail", "directory containing the mail archive")
+	root   = flag.String("root", "$HOME/st/mail", "directory containing the mail archive")
 	assets = flag.String("assets", "assets", "directory containing asset files (css, ...)")
 	Root   *MailDirectory
 )

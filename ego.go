@@ -21,47 +21,75 @@ _, _ = fmt.Fprintf(w, "\n")
 //line directory.ego:14
  t := s.Total() 
 //line directory.ego:15
-_, _ = fmt.Fprintf(w, "\n<div class=\"content\">\n<table>\n\t<th><td>Count</td><td>Size</td>\n\t</th><tr><td>Unread</td>\n\t\t<td>")
-//line directory.ego:19
+_, _ = fmt.Fprintf(w, "\n<h1>")
+//line directory.ego:15
+_, _ = fmt.Fprintf(w, "%v",  dir.Name )
+//line directory.ego:15
+_, _ = fmt.Fprintf(w, " (")
+//line directory.ego:15
+_, _ = fmt.Fprintf(w, "%v",  len(dir.Folders) )
+//line directory.ego:15
+_, _ = fmt.Fprintf(w, ")</h1>\n<div class=\"content\">\n<table>\n\t<th><td>Count</td><td>Size</td>\n\t</th><tr><td>Unread</td>\n\t\t<td>")
+//line directory.ego:20
 _, _ = fmt.Fprintf(w, "%v",  humanize.Comma(s.Unread.Count) )
-//line directory.ego:19
+//line directory.ego:20
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:19
+//line directory.ego:20
 _, _ = fmt.Fprintf(w, "%v",  s.Unread.Count * 100 / t.Count )
-//line directory.ego:19
-_, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
 //line directory.ego:20
+_, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
+//line directory.ego:21
 _, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(s.Unread.Size)) )
-//line directory.ego:20
+//line directory.ego:21
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:20
+//line directory.ego:21
 _, _ = fmt.Fprintf(w, "%v",  s.Unread.Size * 100 / t.Size )
-//line directory.ego:20
+//line directory.ego:21
 _, _ = fmt.Fprintf(w, "%%]</dd>\n\t</tr><tr><td>Deleted</td>\n\t\t<td>")
-//line directory.ego:22
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, "%v",  humanize.Comma(s.Deleted.Count) )
-//line directory.ego:22
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:22
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, "%v",  s.Deleted.Count * 100 / t.Count )
-//line directory.ego:22
+//line directory.ego:23
 _, _ = fmt.Fprintf(w, "%%]</td>\n\t\t<td>")
-//line directory.ego:23
+//line directory.ego:24
 _, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(s.Deleted.Size)) )
-//line directory.ego:23
+//line directory.ego:24
 _, _ = fmt.Fprintf(w, " [")
-//line directory.ego:23
+//line directory.ego:24
 _, _ = fmt.Fprintf(w, "%v",  s.Deleted.Size * 100 / t.Size )
-//line directory.ego:23
+//line directory.ego:24
 _, _ = fmt.Fprintf(w, "%%]</dd>\n\t</tr><tr>\n\t<td>Messages</td>\n\t\t<td>")
-//line directory.ego:26
+//line directory.ego:27
 _, _ = fmt.Fprintf(w, "%v",  humanize.Comma(t.Count) )
-//line directory.ego:26
+//line directory.ego:27
 _, _ = fmt.Fprintf(w, "</td>\n\t\t<td>")
-//line directory.ego:27
+//line directory.ego:28
 _, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(t.Size)) )
-//line directory.ego:27
-_, _ = fmt.Fprintf(w, "</dd>\n\t</tr>\n</table>\n</div>\n</body>\n</html>\n")
+//line directory.ego:28
+_, _ = fmt.Fprintf(w, "</dd>\n\t</tr>\n</table>\n</div>\n<div class=\"content\">\n<table>\n\t<th><td>Folder</td><td>Count</td><td>Size</td></th>\n\t")
+//line directory.ego:35
+ for n, f := range dir.Folders { t := f.Stats().Total() 
+//line directory.ego:36
+_, _ = fmt.Fprintf(w, "\n\t<tr><td>")
+//line directory.ego:36
+_, _ = fmt.Fprintf(w, "%v",  n )
+//line directory.ego:36
+_, _ = fmt.Fprintf(w, "</td>\n\t\t<td>")
+//line directory.ego:37
+_, _ = fmt.Fprintf(w, "%v",  humanize.Comma(t.Count) )
+//line directory.ego:37
+_, _ = fmt.Fprintf(w, "</td>\n\t\t<td>")
+//line directory.ego:38
+_, _ = fmt.Fprintf(w, "%v",  humanize.Bytes(uint64(t.Size)) )
+//line directory.ego:38
+_, _ = fmt.Fprintf(w, "</dd>\n\t</tr>\n\t")
+//line directory.ego:40
+ } 
+//line directory.ego:41
+_, _ = fmt.Fprintf(w, "\n</table>\n</div>\n</body>\n</html>\n")
 return nil
 }
 //line folder.ego:1

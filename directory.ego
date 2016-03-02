@@ -12,6 +12,7 @@
 </nav>
 <% s := dir.Stats() %>
 <% t := s.Total() %>
+<h1><%= dir.Name %> (<%= len(dir.Folders) %>)</h1>
 <div class="content">
 <table>
 	<th><td>Count</td><td>Size</td>
@@ -26,6 +27,17 @@
 		<td><%= humanize.Comma(t.Count) %></td>
 		<td><%= humanize.Bytes(uint64(t.Size)) %></dd>
 	</tr>
+</table>
+</div>
+<div class="content">
+<table>
+	<th><td>Folder</td><td>Count</td><td>Size</td></th>
+	<% for n, f := range dir.Folders { t := f.Stats().Total() %>
+	<tr><td><%= n %></td>
+		<td><%= humanize.Comma(t.Count) %></td>
+		<td><%= humanize.Bytes(uint64(t.Size)) %></dd>
+	</tr>
+	<% } %>
 </table>
 </div>
 </body>
