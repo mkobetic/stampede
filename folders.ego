@@ -3,7 +3,7 @@
 	<% for _, d := range dir.DirectoryList() { %>
 		<li><a href="<%= d.UrlPath() %>"><%= d.Label() %></a><% FolderTree(w,d) %></li>
     <% } %>
-	<% for _, f := range dir.Folders { %>
+	<% for _, f := range dir.FolderList() { %>
 		<li class="<%= f.cClass() %>"><a href="<%= f.UrlPath() %>"><%= f.Label() %></a></li>
     <% } %>
 </ul>

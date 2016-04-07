@@ -66,6 +66,14 @@ func (d *MailDirectory) DirectoryList() (l MailDirectories) {
 	return l
 }
 
+func (d *MailDirectory) FolderList() (l MailFolders) {
+	for _, s := range d.Folders {
+		l = append(l, s)
+	}
+	sort.Sort(l)
+	return l
+}
+
 func (d *MailDirectory) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	DirectoryPage(w, d)
 }

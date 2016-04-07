@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+type MailFolders []*MailFolder
+
+func (a MailFolders) Len() int           { return len(a) }
+func (a MailFolders) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a MailFolders) Less(i, j int) bool { return a[i].Name < a[j].Name }
+
 type MailFolder struct {
 	Directory    *MailDirectory
 	Path         string
