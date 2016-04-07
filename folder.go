@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -21,7 +22,7 @@ type MailFolder struct {
 	Directory    *MailDirectory
 	Path         string
 	Name         string
-	Messages     []*MailMessage
+	Messages     MailMessages
 	MessagesById map[string]*MailMessage
 }
 
@@ -39,7 +40,7 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	messages := make([]*MailMessage, 0, 20)
+	messages := make(MailMessages, 0, 20)
 	messagesById := make(map[string]*MailMessage)
 	position := int64(0)
 	headerFinished := false
@@ -68,6 +69,7 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 	if int64(position) != info.Size() {
 		log.Fatalf("Folder %s length mismatch (%d != %d)!", folder.Name, position, info.Size())
 	}
+	sort.Sort(sort.Reverse(messages))
 	log.Println(folder.UrlPath(), len(messages))
 	folder.Messages = messages
 	folder.MessagesById = messagesById

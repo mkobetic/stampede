@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+type MailMessages []*MailMessage
+
+func (a MailMessages) Len() int           { return len(a) }
+func (a MailMessages) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a MailMessages) Less(i, j int) bool { return a[i].Summary.Date.Before(a[j].Summary.Date) }
+
 type MailMessage struct {
 	Folder        *MailFolder
 	start, length int64
