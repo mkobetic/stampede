@@ -58,6 +58,20 @@ func OpenDirectory(path string, info os.FileInfo, wg *sync.WaitGroup) *MailDirec
 	return directory
 }
 
+func (d *MailDirectory) DumpOffsets() error {
+	for _, s := range d.Directories {
+		if err := s.DumpOffsets(); err != nil {
+			return err
+		}
+	}
+	for _, s := range d.Folders {
+		if err := s.DumpOffsets(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (d *MailDirectory) DirectoryList() (l MailDirectories) {
 	for _, s := range d.Directories {
 		l = append(l, s)

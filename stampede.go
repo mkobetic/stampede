@@ -20,6 +20,8 @@ var (
 	cpuf   = flag.String("cpu", "", "filename for a CPU profile")
 	memf   = flag.String("mem", "", "filename for a heap profile")
 	tracef = flag.String("trace", "", "filename for an event trace")
+	// testing options
+	dump = flag.Bool("dump", false, "dump debugging details for all folders and quit")
 
 	Root *MailDirectory
 )
@@ -72,6 +74,12 @@ func main() {
 	var wg sync.WaitGroup
 	Root = OpenDirectory(os.ExpandEnv(*root), nil, &wg)
 	wg.Wait()
+
+	if *dump {
+		Root.DumpOffsets()
+		os.Exit(0)
+	}
+
 	http.HandleFunc("/", Navigate)
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(*assets))))
 	go func() {

@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+type MessagesByOffset []*MailMessage
+
+func (a MessagesByOffset) Len() int           { return len(a) }
+func (a MessagesByOffset) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a MessagesByOffset) Less(i, j int) bool { return a[i].start < a[j].start }
+
 type MailMessages []*MailMessage
 
 func (a MailMessages) Len() int           { return len(a) }

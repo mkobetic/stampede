@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"sync"
-	"time"
 )
 
 type MailFolders []*MailFolder
@@ -52,13 +52,12 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 		}
 		if startsNewMessage(line) {
 			message.length = position - message.start
+			messagesById[message.Summary.Id] = message
 			message = &MailMessage{Folder: folder, start: position}
 			headerFinished = false
 			messages = append(messages, message)
 		} else if !headerFinished {
 			headerFinished = !message.scanHeaderLine(line)
-		} else if headerFinished {
-			messagesById[message.Summary.Id] = message
 		}
 		position += int64(len(line))
 		for err == bufio.ErrBufferFull { // read the rest of the line
@@ -66,9 +65,13 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 			position += int64(len(line))
 		}
 	}
+	message.length = position - message.start
+	messagesById[message.Summary.Id] = message
+
 	if int64(position) != info.Size() {
 		log.Fatalf("Folder %s length mismatch (%d != %d)!", folder.Name, position, info.Size())
 	}
+
 	sort.Sort(sort.Reverse(messages))
 	log.Println(folder.UrlPath(), len(messages))
 	folder.Messages = messages
@@ -118,6 +121,23 @@ func (f *MailFolder) Stats() *MessageStats {
 	return s
 }
 
+func (f *MailFolder) DumpOffsets() error {
+	out, err := os.Create(f.Path + ".offsets2")
+	if err != nil {
+		log.Printf("dumping %s: %s", f.Path, err)
+		return err
+	}
+	defer out.Close()
+	byOffset := make(MessagesByOffset, len(f.Messages))
+	copy(byOffset, f.Messages)
+	sort.Sort(byOffset)
+	for _, m := range byOffset {
+		fmt.Fprintf(out, "%d,%d\n", m.start, m.length)
+	}
+	log.Printf("dumping %s: %d messages", f.Path, len(byOffset))
+	return nil
+}
+
 type MessageStats struct {
 	Read    Total
 	Unread  Total
@@ -164,8 +184,12 @@ func (t *Total) AddSize(s int64) {
 }
 
 var (
-	FROM_PREFIX    = []byte("From ")
-	FROM_TIMESTAMP = "Mon Jan 2 15:04:05 2006"
+	FROM_PREFIX          = []byte("From ")
+	FROM_TIMESTAMP       = "Mon Jan 2 15:04:05 2006"
+	FROM_TIMESTAMP_REGEX = regexp.MustCompile(`^` +
+		`(Mon|Tue|Wed|Thu|Fri|Sat|Sun) ` +
+		`(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [ \d]?\d ` +
+		`[ \d]?\d:\d\d(:\d\d)? \d{4}$`)
 )
 
 func startsNewMessage(line []byte) bool {
@@ -177,10 +201,6 @@ func startsNewMessage(line []byte) bool {
 	if tsStart == -1 {
 		return false
 	}
-	line = bytes.Trim(line[tsStart:len(line)-1], " \t\n")
-	if len(line) > len(FROM_TIMESTAMP)+2 {
-		return false
-	}
-	_, err := time.Parse(FROM_TIMESTAMP, string(line))
-	return err == nil
+	line = bytes.Trim(line[tsStart:len(line)-1], " \t\r\n")
+	return FROM_TIMESTAMP_REGEX.Match(line)
 }

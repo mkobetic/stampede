@@ -2,3 +2,5 @@ stampede
 .idea
 .idea/libararies
 stampede.iml
+*DS_Store
+.vscode
