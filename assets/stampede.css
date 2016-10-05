@@ -42,7 +42,7 @@ body {
 }
 
 .content pre {
-	word-wrap: break-word;
+	white-space: pre-wrap;
 }
 
 /* FolderPage message list */

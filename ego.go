@@ -110,7 +110,7 @@ func FolderPage(w io.Writer, folder *MailFolder) error {
 //line folder.ego:10
 	_, _ = io.WriteString(w, "\n</nav>\n<div class=\"content\">\n<ul class=\"msgs \">\n\t")
 //line folder.ego:13
-	for i, m := range folder.Messages {
+	for _, m := range folder.Messages {
 //line folder.ego:14
 		_, _ = io.WriteString(w, "\n\t\t<li class=\"")
 //line folder.ego:14
@@ -120,11 +120,7 @@ func FolderPage(w io.Writer, folder *MailFolder) error {
 //line folder.ego:14
 		_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(m.UrlPath())))
 //line folder.ego:14
-		_, _ = io.WriteString(w, "\">")
-//line folder.ego:14
-		_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(i)))
-//line folder.ego:15
-		_, _ = io.WriteString(w, "\n\t\t\t<span>")
+		_, _ = io.WriteString(w, "\">\n\t\t\t<span>")
 //line folder.ego:15
 		_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(m.hSent())))
 //line folder.ego:15

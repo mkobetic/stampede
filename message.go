@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/base32"
 	"errors"
 	"html"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
@@ -101,6 +103,15 @@ func (s MozillaStatus) cClass() string {
 
 func (m *MailMessage) UrlPath() string {
 	return m.Folder.UrlPath() + "/" + m.Summary.Id
+}
+
+func (m *MailMessage) Id() string {
+	if m.Summary.Id == "" {
+		b := make([]byte, 15)
+		rand.New(rand.NewSource(m.Summary.Date.Unix())).Read(b)
+		m.Summary.Id = base32.StdEncoding.EncodeToString(b)
+	}
+	return m.Summary.Id
 }
 
 func (m *MailMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -52,7 +52,7 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 		}
 		if startsNewMessage(line) {
 			message.length = position - message.start
-			messagesById[message.Summary.Id] = message
+			messagesById[message.Id()] = message
 			message = &MailMessage{Folder: folder, start: position}
 			headerFinished = false
 			messages = append(messages, message)
@@ -66,7 +66,7 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 		}
 	}
 	message.length = position - message.start
-	messagesById[message.Summary.Id] = message
+	messagesById[message.Id()] = message
 
 	if int64(position) != info.Size() {
 		log.Fatalf("Folder %s length mismatch (%d != %d)!", folder.Name, position, info.Size())
