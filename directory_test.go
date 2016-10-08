@@ -1,43 +1,36 @@
 package main
 
-import "testing"
+import (
+	"net/http"
+	"strings"
+	"testing"
+)
 
 func TestFind(t *testing.T) {
 	r := &MailDirectory{Directories: make(map[string]*MailDirectory)}
-
-	if r.Find([]string{}) != r {
-		t.Fail()
-	}
-
-	if r.Find([]string{"X"}) != nil {
-		t.Fail()
-	}
-
 	a := &MailDirectory{Name: "A", Directories: make(map[string]*MailDirectory)}
 	r.Directories["A"] = a
 	ab := &MailDirectory{Name: "B", Folders: make(map[string]*MailFolder)}
 	a.Directories["B"] = ab
-
-	abc := &MailFolder{Name: "C"}
+	abc := &MailFolder{Name: "C", MessagesById: make(map[string]*MailMessage)}
 	ab.Folders["C"] = abc
+	m := &MailMessage{}
+	abc.MessagesById["D"] = m
 
-	if r.Find([]string{"A"}) != a {
-		t.Fail()
+	tf := func(s string, dir http.Handler) {
+		path := strings.Split(s, "")
+		t.Run(strings.Join(path, ""), func(t *testing.T) {
+			if got := r.Find(path); got != dir {
+				t.Fatal(got)
+			}
+		})
 	}
 
-	if r.Find([]string{"B"}) != nil {
-		t.Fail()
-	}
-
-	if r.Find([]string{"A", "B"}) != ab {
-		t.Fail()
-	}
-
-	if r.Find([]string{"A", "B", "C"}) != abc {
-		t.Fail()
-	}
-
-	if r.Find([]string{"A", "B", "C", "D"}) != abc {
-		t.Fail()
-	}
+	tf("", r)
+	tf("X", nil)
+	tf("A", a)
+	tf("B", nil)
+	tf("AB", ab)
+	tf("ABC", abc)
+	tf("ABCD", m)
 }
