@@ -188,28 +188,110 @@ func FolderTree(w io.Writer, dir *MailDirectory) error {
 }
 
 //line message.ego:1
-func MessagePage(w io.Writer, msg *MailMessage, body io.Reader) error {
+func MessagePage(w io.Writer, msg *MailMessage, p *Part) error {
 //line message.ego:2
 	_, _ = io.WriteString(w, "\n<html>\n<head>\n<link href=\"/assets/stampede.css\" rel=\"stylesheet\">\n</head>\n<body>\n<nav class=\"sidebar\">\n")
 //line message.ego:8
 	FolderTree(w, Root)
 //line message.ego:9
-	_, _ = io.WriteString(w, "\n</nav>\n<div class=\"content\">\n<div>\n\t<span>")
+	_, _ = io.WriteString(w, "\n</nav>\n<div class=\"content\">\n")
+//line message.ego:11
+	MessageHeader(w, msg)
 //line message.ego:12
+	_, _ = io.WriteString(w, "\n")
+//line message.ego:12
+	msg.ForEachPart(p, func(p *Part) {
+//line message.ego:13
+		_, _ = io.WriteString(w, "\n<div>\n")
+//line message.ego:14
+		if p.Type() == "image" {
+//line message.ego:15
+			_, _ = io.WriteString(w, "\n<img src=\"data:")
+//line message.ego:15
+			_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(p.ContentType)))
+//line message.ego:15
+			_, _ = io.WriteString(w, ";base64,")
+//line message.ego:15
+			io.Copy(EscapeContent(w), p.B64Body())
+//line message.ego:15
+			_, _ = io.WriteString(w, "\"/>\n")
+//line message.ego:16
+		} else if p.Type() == "text" {
+//line message.ego:17
+			_, _ = io.WriteString(w, "\n<pre>")
+//line message.ego:17
+			io.Copy(EscapeContent(w), p.TextBody())
+//line message.ego:17
+			_, _ = io.WriteString(w, "</pre>\n")
+//line message.ego:18
+		} else {
+//line message.ego:19
+			_, _ = io.WriteString(w, "\n<em>Cannot display ")
+//line message.ego:19
+			_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(p.ContentType)))
+//line message.ego:19
+			_, _ = io.WriteString(w, "</pre>\n")
+//line message.ego:20
+		}
+//line message.ego:20
+		_, _ = io.WriteString(w, "</div>\n")
+//line message.ego:21
+	}, func(err error) {
+//line message.ego:22
+		_, _ = io.WriteString(w, "\n<div><em>")
+//line message.ego:22
+		_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(err.Error())))
+//line message.ego:22
+		_, _ = io.WriteString(w, "</em></div>\n")
+//line message.ego:23
+	})
+//line message.ego:24
+	_, _ = io.WriteString(w, "\n</div>\n</body>\n</html>\n")
+	return nil
+}
+
+//line message_header.ego:1
+func MessageHeader(w io.Writer, msg *MailMessage) error {
+//line message_header.ego:2
+	_, _ = io.WriteString(w, "\n<div>\n    <a href=\"")
+//line message_header.ego:3
+	_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(msg.UrlPath()+`?render=raw`)))
+//line message_header.ego:3
+	_, _ = io.WriteString(w, "\">R</a>\n    <a href=\"")
+//line message_header.ego:4
+	_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(msg.UrlPath())))
+//line message_header.ego:4
+	_, _ = io.WriteString(w, "\">F</a>\n\t<span>")
+//line message_header.ego:5
 	_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(msg.hSent())))
-//line message.ego:12
+//line message_header.ego:5
 	_, _ = io.WriteString(w, "</span>\n\t<span>")
-//line message.ego:13
+//line message_header.ego:6
 	_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(msg.hSubject())))
-//line message.ego:13
+//line message_header.ego:6
 	_, _ = io.WriteString(w, "</span>\n\t<span>")
-//line message.ego:14
+//line message_header.ego:7
 	_, _ = io.WriteString(w, html.EscapeString(fmt.Sprint(msg.hSender())))
-//line message.ego:14
-	_, _ = io.WriteString(w, "</span>\n</div>\n<div><pre>")
-//line message.ego:16
+//line message_header.ego:7
+	_, _ = io.WriteString(w, "</span>\n</div>\n")
+	return nil
+}
+
+//line message_raw.ego:1
+func RawMessagePage(w io.Writer, msg *MailMessage, body io.Reader) error {
+//line message_raw.ego:2
+	_, _ = io.WriteString(w, "\n<html>\n<head>\n<link href=\"/assets/stampede.css\" rel=\"stylesheet\">\n</head>\n<body>\n<nav class=\"sidebar\">\n")
+//line message_raw.ego:8
+	FolderTree(w, Root)
+//line message_raw.ego:9
+	_, _ = io.WriteString(w, "\n</nav>\n<div class=\"content\">\n")
+//line message_raw.ego:11
+	MessageHeader(w, msg)
+//line message_raw.ego:12
+	_, _ = io.WriteString(w, "\n<div><pre>")
+//line message_raw.ego:12
 	io.Copy(EscapeContent(w), body)
-//line message.ego:16
+//line message_raw.ego:12
 	_, _ = io.WriteString(w, "</pre></div>\n</div>\n</body>\n</html>\n")
 	return nil
 }

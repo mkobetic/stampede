@@ -30,7 +30,7 @@ func TestMailMessageScanHeaderLine(t *testing.T) {
 	if !m.scanHeaderLine([]byte("From: John Doe\n")) {
 		t.Fail()
 	}
-	if string(m.Summary.From) != "John Doe" {
+	if string(m.Summary.From.DisplayString()) != "John Doe" {
 		t.Fail()
 	}
 	if !m.scanHeaderLine([]byte("Message-Id: xxx\n")) {

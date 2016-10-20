@@ -3,14 +3,21 @@ package main
 import (
 	"bytes"
 	"encoding/base32"
+	"encoding/base64"
 	"errors"
 	"html"
 	"io"
 	"math/rand"
+	"mime"
+	"mime/multipart"
+	"mime/quotedprintable"
 	"net/http"
+	"net/mail"
+	"net/textproto"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,11 +27,26 @@ func (a MessagesByOffset) Len() int           { return len(a) }
 func (a MessagesByOffset) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a MessagesByOffset) Less(i, j int) bool { return a[i].start < a[j].start }
 
-type MailMessages []*MailMessage
+type MessagesByDate []*MailMessage
 
-func (a MailMessages) Len() int           { return len(a) }
-func (a MailMessages) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a MailMessages) Less(i, j int) bool { return a[i].Summary.Date.Before(a[j].Summary.Date) }
+func (a MessagesByDate) Len() int           { return len(a) }
+func (a MessagesByDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a MessagesByDate) Less(i, j int) bool { return a[i].Summary.Date.Before(a[j].Summary.Date) }
+
+type Address struct {
+	*mail.Address
+	source string
+}
+
+func (a *Address) DisplayString() string {
+	if a.Address == nil {
+		return html.EscapeString(a.source)
+	}
+	if a.Address.Name != "" {
+		return html.EscapeString(a.Address.Name)
+	}
+	return a.Address.Address
+}
 
 type MailMessage struct {
 	Folder        *MailFolder
@@ -39,8 +61,8 @@ type MessageSummary struct {
 	Id      string
 	Subject string
 	Date    time.Time
-	From    string
-	To      string
+	From    Address
+	To      Address
 	Status  MozillaStatus
 }
 
@@ -102,7 +124,7 @@ func (s MozillaStatus) cClass() string {
 }
 
 func (m *MailMessage) UrlPath() string {
-	return m.Folder.UrlPath() + "/" + m.Summary.Id
+	return m.Folder.UrlPath() + "/" + m.Id()
 }
 
 func (m *MailMessage) Id() string {
@@ -118,13 +140,94 @@ func (m *MailMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	file, err := os.Open(m.Folder.Path)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 	defer file.Close()
 	if _, err := file.Seek(m.start, os.SEEK_SET); err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 	b := io.LimitReader(file, m.length)
-	MessagePage(w, m, b)
+	if r.FormValue("render") == "raw" {
+		RawMessagePage(w, m, b)
+		return
+	}
+	mm, err := mail.ReadMessage(b)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	p, err := NewPart(textproto.MIMEHeader(mm.Header), mm.Body)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	MessagePage(w, m, p)
+}
+
+type Part struct {
+	Header            textproto.MIMEHeader
+	Body              io.Reader
+	ContentType       string
+	ContentTypeParams map[string]string
+}
+
+func (p *Part) B64Body() io.Reader {
+	if p.Header.Get("Content-Transfer-Encoding") == "base64" {
+		return p.Body
+	}
+	return p.Body // FIXME
+}
+
+func (p *Part) TextBody() io.Reader {
+	r := p.Body
+	switch p.Header.Get("Content-Transfer-Encoding") {
+	case "base64":
+		r = base64.NewDecoder(base64.StdEncoding, r)
+	case "quoted-printable":
+		r = quotedprintable.NewReader(r)
+	}
+	return r
+}
+
+func (p *Part) Type() string {
+	return strings.Split(p.ContentType, "/")[0]
+}
+
+func NewPart(h textproto.MIMEHeader, b io.Reader) (p *Part, err error) {
+	p = &Part{Header: h, Body: b}
+	p.ContentType, p.ContentTypeParams, err = mime.ParseMediaType(p.Header.Get("Content-Type"))
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+func (m *MailMessage) ForEachPart(p *Part, f func(p *Part), e func(err error)) error {
+	if strings.HasPrefix(p.ContentType, "multipart/") {
+		mr := multipart.NewReader(p.Body, p.ContentTypeParams["boundary"])
+		for {
+			mp, err := mr.NextPart()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				e(err)
+				return err
+			}
+			p, err := NewPart(mp.Header, mp)
+			if err != nil {
+				e(err)
+				return err
+			}
+			err = m.ForEachPart(p, f, e)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	f(p)
+	return nil
 }
 
 // Message rendering.
@@ -138,7 +241,7 @@ func (m *MailMessage) hSubject() string {
 }
 
 func (m *MailMessage) hSender() string {
-	return html.EscapeString(m.Summary.From)
+	return m.Summary.From.DisplayString()
 }
 
 func (m *MailMessage) cClass() string {
@@ -172,13 +275,22 @@ func (m *MailMessage) scanHeaderLineS(line []byte) {
 	value := bytes.TrimPrefix(line, []byte("Subject: "))
 	if len(line) > len(value) {
 		m.Summary.Subject = decodeString(value)
+		if ds, err := new(mime.WordDecoder).DecodeHeader(m.Summary.Subject); err == nil {
+			m.Summary.Subject = ds
+		}
 	}
 }
 
 func (m *MailMessage) scanHeaderLineF(line []byte) {
 	value := bytes.TrimPrefix(line, []byte("From: "))
 	if len(line) > len(value) {
-		m.Summary.From = decodeString(value)
+		str := decodeString(value)
+		if addr, err := mail.ParseAddress(str); err == nil {
+			m.Summary.From.Address = addr
+		} else {
+			m.Summary.From.source = str
+		}
+		decodeString(value)
 	}
 }
 

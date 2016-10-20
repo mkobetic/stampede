@@ -15,7 +15,7 @@ func TestFind(t *testing.T) {
 	abc := &MailFolder{Name: "C", MessagesById: make(map[string]*MailMessage)}
 	ab.Folders["C"] = abc
 	m := &MailMessage{}
-	abc.MessagesById["D"] = m
+	abc.MessagesById["m"] = m
 
 	tf := func(s string, dir http.Handler) {
 		path := strings.Split(s, "")
@@ -32,5 +32,5 @@ func TestFind(t *testing.T) {
 	tf("B", nil)
 	tf("AB", ab)
 	tf("ABC", abc)
-	tf("ABCD", m)
+	tf("ABCm", m)
 }

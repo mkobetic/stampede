@@ -22,7 +22,7 @@ type MailFolder struct {
 	Directory    *MailDirectory
 	Path         string
 	Name         string
-	Messages     MailMessages
+	Messages     MessagesByDate
 	MessagesById map[string]*MailMessage
 }
 
@@ -40,7 +40,7 @@ func openFolder(folder *MailFolder, info os.FileInfo, wg *sync.WaitGroup) {
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	messages := make(MailMessages, 0, 20)
+	messages := make(MessagesByDate, 0, 20)
 	messagesById := make(map[string]*MailMessage)
 	position := int64(0)
 	headerFinished := false

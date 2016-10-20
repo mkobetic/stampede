@@ -1,4 +1,4 @@
-<%! func MessagePage(w io.Writer, msg *MailMessage, body io.Reader) error %>
+<%! func MessagePage(w io.Writer, msg *MailMessage, p *Part) error %>
 <html>
 <head>
 <link href="/assets/stampede.css" rel="stylesheet">
@@ -8,12 +8,19 @@
 <% FolderTree(w, Root) %>
 </nav>
 <div class="content">
+<% MessageHeader(w,msg) %>
+<% msg.ForEachPart(p, func(p *Part) { %>
 <div>
-	<span><%= msg.hSent() %></span>
-	<span><%= msg.hSubject() %></span>
-	<span><%= msg.hSender() %></span>
-</div>
-<div><pre><% io.Copy(EscapeContent(w),body) %></pre></div>
+<% if p.Type() == "image" { %>
+<img src="data:<%= p.ContentType %>;base64,<% io.Copy(EscapeContent(w),p.B64Body()) %>"/>
+<% } else if p.Type() == "text" { %>
+<pre><% io.Copy(EscapeContent(w),p.TextBody()) %></pre>
+<% } else { %>
+<em>Cannot display <%= p.ContentType %></pre>
+<% } %></div>
+<% }, func(err error) { %>
+<div><em><%= err.Error() %></em></div>
+<% }) %>
 </div>
 </body>
 </html>
