@@ -1,0 +1,15 @@
+<%! func RawMessagePage(w io.Writer, msg *MailMessage, body io.Reader) error %>
+<html>
+<head>
+<link href="/assets/stampede.css" rel="stylesheet">
+</head>
+<body>
+<nav class="sidebar">
+<% FolderTree(w, Root) %>
+</nav>
+<div class="content">
+<% MessageHeader(w,msg) %>
+<div><pre><% io.Copy(EscapeContent(w),body) %></pre></div>
+</div>
+</body>
+</html>

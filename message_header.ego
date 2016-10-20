@@ -1,0 +1,8 @@
+<%! func MessageHeader(w io.Writer, msg *MailMessage) error %>
+<div>
+    <a href="<%= msg.UrlPath() + `?render=raw` %>">R</a>
+    <a href="<%= msg.UrlPath() %>">F</a>
+	<span><%= msg.hSent() %></span>
+	<span><%= msg.hSubject() %></span>
+	<span><%= msg.hSender() %></span>
+</div>
